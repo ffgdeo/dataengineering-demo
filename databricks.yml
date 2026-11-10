@@ -1,0 +1,35 @@
+# Declarative Automation Bundle for the data engineering demo.
+# Deploy:  databricks bundle deploy --var="catalog=<your_catalog>"
+# Run:     databricks bundle run de_demo_sdp_pipeline --var="catalog=<your_catalog>"
+bundle:
+  name: dataengineering-demo
+
+variables:
+  catalog:
+    description: Unity Catalog catalog for the demo (must already exist)
+    default: main
+  schema:
+    description: Schema created by notebooks/00_Setup_Mock_Data
+    default: de_demo
+
+resources:
+  pipelines:
+    de_demo_sdp_pipeline:
+      name: de_demo_sdp_pipeline
+      catalog: ${var.catalog}
+      schema: ${var.schema}
+      serverless: true
+      continuous: false
+      photon: true
+      channel: current
+      root_path: ./pipeline
+      libraries:
+        - glob:
+            include: ./pipeline/transformations/**
+      configuration:
+        landing_path: /Volumes/${var.catalog}/${var.schema}/landing
+
+targets:
+  dev:
+    mode: development
+    default: true
